@@ -22,7 +22,7 @@ const INITIAL_UPGRADES = {
         description: 'The nighttime, sniffling, sneezing, coughing, aching, stuffy head, fever, so you can rest medicine.',
         level: 0,
         baseCost: 100,
-        hpPerSecond: 10,
+        hpPerSecond: 20,
         costIncreaseFactor: 1.10,
     },
     [UPGRADE_IDS.SLEEP]: {
@@ -31,7 +31,7 @@ const INITIAL_UPGRADES = {
         description: 'The ultimate healer. Generates a lot of health.',
         level: 0,
         baseCost: 1100,
-        hpPerSecond: 100,
+        hpPerSecond: 150,
         costIncreaseFactor: 1.10,
     },
     [UPGRADE_IDS.IVERMECTIN]: {
@@ -80,7 +80,7 @@ function gameData() {
         floatingNumbers: [],
         gameTimer: null,
         saveTimer: null,
-        winCondition: 1_000_000_000,
+        winCondition: 500_000_000,
         isHorse: false,
         isGlowing: false,
 
