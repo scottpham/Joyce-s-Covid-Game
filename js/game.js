@@ -79,6 +79,7 @@ function gameData() {
         upgrades: structuredClone(INITIAL_UPGRADES),
         floatingNumbers: [],
         gameTimer: null,
+        saveTimer: null,
         winCondition: 1_000_000_000,
         isHorse: false,
         isGlowing: false,
@@ -174,8 +175,50 @@ function gameData() {
             }, 600); // Match animation duration
         },
         
+        saveGame() {
+            const gameState = {
+                healthPoints: this.healthPoints,
+                hpPerSecond: this.hpPerSecond,
+                hpPerClick: this.hpPerClick,
+                upgrades: this.upgrades,
+                isHorse: this.isHorse,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('joyces-covid-game-save', JSON.stringify(gameState));
+            console.log('💾 Game saved automatically');
+        },
+        
+        loadGame() {
+            const savedData = localStorage.getItem('joyces-covid-game-save');
+            if (savedData) {
+                try {
+                    const gameState = JSON.parse(savedData);
+                    this.healthPoints = gameState.healthPoints || 0;
+                    this.hpPerSecond = gameState.hpPerSecond || 0;
+                    this.hpPerClick = gameState.hpPerClick || 1;
+                    this.upgrades = gameState.upgrades || structuredClone(INITIAL_UPGRADES);
+                    this.isHorse = gameState.isHorse || false;
+                    console.log('💾 Game loaded from save');
+                    return true;
+                } catch (error) {
+                    console.log('⚠️ Save file corrupted, starting fresh');
+                    return false;
+                }
+            }
+            return false;
+        },
+        
+        deleteSave() {
+            localStorage.removeItem('joyces-covid-game-save');
+            console.log('🗑️ Save file deleted');
+        },
+        
         startGame() {
-            this.updateDerivedStats();
+            // Try to load saved game first
+            if (!this.loadGame()) {
+                // If no save exists, use initial state
+                this.updateDerivedStats();
+            }
             
             // Main game loop - runs every second
             this.gameTimer = setInterval(() => {
@@ -183,6 +226,11 @@ function gameData() {
                     this.healthPoints += this.hpPerSecond;
                 }
             }, 1000);
+            
+            // Auto-save every 10 seconds
+            this.saveTimer = setInterval(() => {
+                this.saveGame();
+            }, 10000);
         },
         
         resetGame() {
@@ -195,10 +243,16 @@ function gameData() {
             this.isHorse = false;
             this.isGlowing = false;
             
-            // Clear existing timer
+            // Clear existing timers
             if (this.gameTimer) {
                 clearInterval(this.gameTimer);
             }
+            if (this.saveTimer) {
+                clearInterval(this.saveTimer);
+            }
+            
+            // Delete save file
+            this.deleteSave();
             
             // Restart game
             this.startGame();
