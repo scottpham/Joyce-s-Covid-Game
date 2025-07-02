@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joyce's COVID Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+        @keyframes float-up {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -250%) scale(1.5); opacity: 0; }
+        }
+        .animate-float-up {
+            animation: float-up 1.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-800 text-white">
+    <div x-data="gameData()" x-init="startGame()" class="min-h-screen bg-gray-800 text-white flex flex-col items-center p-2 md:p-4 selection:bg-green-500 selection:text-white">
+        
+        <!-- Win Screen -->
+        <div x-show="isWon" class="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 text-center">
+            <h1 class="font-pixel text-5xl text-green-400 mb-4" style="text-shadow: 3px 3px 0px #000">You are Cured!</h1>
+            <p class="text-xl mb-8">You successfully fought off the virus. Time to enjoy your health!</p>
+            <button @click="resetGame()" class="font-pixel bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200">
+                Play Again
+            </button>
+        </div>
+
+        <!-- Game Screen -->
+        <div x-show="!isWon">
+            <!-- Header -->
+            <header class="w-full max-w-6xl text-center mb-4">
+                <h1 class="font-pixel text-3xl md:text-5xl text-red-500" style="text-shadow: 2px 2px 0px #000">JOYCE'S COVID GAME</h1>
+                <div class="mt-4 w-full bg-gray-700 rounded-full h-8 border-2 border-gray-600 shadow-inner">
+                    <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500 ease-out"
+                         :style="`width: ${healthPercentage}%`"></div>
+                </div>
+                <p class="font-pixel text-sm text-green-300 mt-1" x-text="`${formatNumber(healthPercentage)}% Cured`"></p>
+            </header>
+
+            <!-- Main Game Area -->
+            <main class="w-full max-w-6xl flex flex-col md:flex-row gap-4">
+                <!-- Left Column - Character and Clicker -->
+                <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col items-center bg-gray-900/50 p-4 rounded-xl border border-gray-700 shadow-2xl">
+                    <div class="text-center w-full">
+                        <h2 class="font-pixel text-2xl md:text-4xl text-green-400" style="text-shadow: 2px 2px 0 #000" x-text="formatNumber(healthPoints)"></h2>
+                        <p class="text-sm text-gray-400">Health Points</p>
+                        <p class="text-lg text-green-300 mt-1" x-text="`${formatNumber(hpPerSecond)} HP/sec`"></p>
+                    </div>
+                    
+                    <!-- Character Display -->
+                    <div class="relative w-full flex-grow flex items-center justify-center my-4">
+                        <svg viewBox="0 0 100 100" class="w-48 h-48 md:w-64 md:h-64 transition-colors duration-500"
+                             :class="characterColor">
+                            <circle cx="50" cy="50" r="45" fill="currentColor" stroke="#1f2937" stroke-width="4" />
+                        </svg>
+                        <svg viewBox="0 0 100 100" class="absolute top-0 left-0 w-48 h-48 md:w-64 md:h-64">
+                            <!-- Eyes -->
+                            <g x-show="healthPercentage <= 35">
+                                <path d="M30 45 Q35 40 40 45" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                                <path d="M60 45 Q65 40 70 45" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                            </g>
+                            <g x-show="healthPercentage > 35 && healthPercentage <= 75">
+                                <line x1="30" y1="45" x2="40" y2="45" stroke="black" stroke-width="5" stroke-linecap="round" />
+                                <line x1="60" y1="45" x2="70" y2="45" stroke="black" stroke-width="5" stroke-linecap="round" />
+                            </g>
+                            <g x-show="healthPercentage > 75">
+                                <circle cx="35" cy="45" r="5" fill="black" />
+                                <circle cx="65" cy="45" r="5" fill="black" />
+                            </g>
+                            
+                            <!-- Mouth -->
+                            <g x-show="healthPercentage <= 35">
+                                <path d="M35 70 Q50 60 65 70" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                            </g>
+                            <g x-show="healthPercentage > 35 && healthPercentage <= 75">
+                                <line x1="35" y1="70" x2="65" y2="70" stroke="black" stroke-width="5" stroke-linecap="round" />
+                            </g>
+                            <g x-show="healthPercentage > 75">
+                                <path d="M35 65 Q50 80 65 65" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                            </g>
+                        </svg>
+                        
+                        <!-- Floating Numbers -->
+                        <template x-for="number in floatingNumbers" :key="number.id">
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-pixel text-2xl md:text-3xl text-green-400 pointer-events-none animate-float-up"
+                                 style="text-shadow: 2px 2px 0px rgba(0,0,0,0.7);"
+                                 x-text="`+${number.value}`"></div>
+                        </template>
+                    </div>
+
+                    <button @click="fightVirus()" class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 active:scale-100 transition-transform duration-150 ease-in-out font-pixel text-xl">
+                        Fight Virus!
+                    </button>
+                </div>
+
+                <!-- Right Column - Upgrades -->
+                <div class="w-full md:w-1/2 lg:w-3/5">
+                    <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700 shadow-2xl h-full">
+                        <h2 class="font-pixel text-2xl text-center mb-4 text-cyan-400" style="text-shadow: 2px 2px 0px #000">Upgrades</h2>
+                        <div class="space-y-3">
+                            <template x-for="upgrade in upgrades" :key="upgrade.id">
+                                <div class="bg-gray-800/80 p-3 rounded-lg border border-gray-600 hover:border-gray-500 transition-colors">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <!-- Joe Rogan Icon for Ivermectin (normal) -->
+                                            <div x-show="upgrade.id === 'ivermectin' && !isHorse" class="w-8 h-8 bg-gray-700 rounded border-2 border-gray-600 flex items-center justify-center">
+                                                <svg viewBox="0 0 20 20" class="w-6 h-6">
+                                                    <!-- Pixelated Joe Rogan based on reference image -->
+                                                    <!-- Bald head (top and sides) -->
+                                                    <rect x="6" y="2" width="8" height="2" fill="#D2A374"/>
+                                                    <rect x="5" y="4" width="10" height="6" fill="#D2A374"/>
+                                                    
+                                                    <!-- Dark hair on sides -->
+                                                    <rect x="4" y="5" width="1" height="3" fill="#4A4A4A"/>
+                                                    <rect x="15" y="5" width="1" height="3" fill="#4A4A4A"/>
+                                                    <rect x="5" y="8" width="1" height="2" fill="#4A4A4A"/>
+                                                    <rect x="14" y="8" width="1" height="2" fill="#4A4A4A"/>
+                                                    
+                                                    <!-- Eyes (dark) -->
+                                                    <rect x="7" y="5" width="2" height="1" fill="#2C2C2C"/>
+                                                    <rect x="11" y="5" width="2" height="1" fill="#2C2C2C"/>
+                                                    
+                                                    <!-- Eye bags/details -->
+                                                    <rect x="7" y="6" width="1" height="1" fill="#B8956B"/>
+                                                    <rect x="8" y="6" width="1" height="1" fill="#5A8B8B"/>
+                                                    <rect x="11" y="6" width="1" height="1" fill="#B8956B"/>
+                                                    <rect x="12" y="6" width="1" height="1" fill="#5A8B8B"/>
+                                                    
+                                                    <!-- Nose -->
+                                                    <rect x="9" y="7" width="2" height="1" fill="#B8956B"/>
+                                                    
+                                                    <!-- Mouth -->
+                                                    <rect x="8" y="8" width="4" height="1" fill="#2C2C2C"/>
+                                                    
+                                                    <!-- Chin/jaw -->
+                                                    <rect x="7" y="9" width="6" height="2" fill="#D2A374"/>
+                                                    <rect x="6" y="10" width="2" height="1" fill="#8B4513"/>
+                                                    <rect x="12" y="10" width="2" height="1" fill="#8B4513"/>
+                                                    
+                                                    <!-- Neck -->
+                                                    <rect x="8" y="11" width="4" height="2" fill="#D2A374"/>
+                                                    
+                                                    <!-- Shirt/clothing (dark plaid suggestion) -->
+                                                    <rect x="6" y="13" width="8" height="4" fill="#4A4A4A"/>
+                                                    <rect x="7" y="14" width="1" height="1" fill="#6B6B6B"/>
+                                                    <rect x="9" y="14" width="1" height="1" fill="#6B6B6B"/>
+                                                    <rect x="11" y="14" width="1" height="1" fill="#6B6B6B"/>
+                                                    <rect x="8" y="15" width="1" height="1" fill="#6B6B6B"/>
+                                                    <rect x="10" y="15" width="1" height="1" fill="#6B6B6B"/>
+                                                    <rect x="12" y="15" width="1" height="1" fill="#6B6B6B"/>
+                                                    
+                                                    <!-- Microphone suggestion -->
+                                                    <rect x="14" y="8" width="2" height="1" fill="#5A5A5A"/>
+                                                    <rect x="15" y="9" width="1" height="2" fill="#5A5A5A"/>
+                                                </svg>
+                                            </div>
+                                            <!-- Horse Icon for Ivermectin (when horse) -->
+                                            <div x-show="upgrade.id === 'ivermectin' && isHorse" class="w-8 h-8 bg-gray-200 rounded border-2 border-gray-700 flex items-center justify-center p-1">
+                                                <img src="horse.png" alt="Horse" class="w-full h-full object-contain" style="image-rendering: pixelated;">
+                                            </div>
+                                            <div>
+                                                <h3 class="font-pixel text-sm text-yellow-300" x-text="upgrade.name"></h3>
+                                                <p class="text-xs text-gray-300 leading-relaxed" x-text="upgrade.description"></p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-pixel text-lg text-green-400" x-text="formatNumber(getUpgradeCost(upgrade))"></p>
+                                            <p class="text-xs text-gray-400" x-text="`Level ${upgrade.level}`"></p>
+                                        </div>
+                                    </div>
+                                    <button @click="buyUpgrade(upgrade.id)" 
+                                            :disabled="!canAfford(upgrade)"
+                                            :class="canAfford(upgrade) ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 cursor-not-allowed'"
+                                            class="w-full py-2 px-4 rounded font-pixel text-sm transition-colors">
+                                        <span x-show="canAfford(upgrade)">Buy</span>
+                                        <span x-show="!canAfford(upgrade)">Can't Afford</span>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

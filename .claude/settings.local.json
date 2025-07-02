@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(open http://localhost:8001/game.html)",
+      "Bash(cp:*)"
+    ],
+    "deny": []
+  }
+}
