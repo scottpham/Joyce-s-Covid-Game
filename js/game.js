@@ -32,7 +32,7 @@ const INITIAL_UPGRADES = {
         level: 0,
         baseCost: 1100,
         hpPerSecond: 150,
-        costIncreaseFactor: 1.10,
+        costIncreaseFactor: 1.11,
     },
     [UPGRADE_IDS.IVERMECTIN]: {
         id: UPGRADE_IDS.IVERMECTIN,
@@ -40,6 +40,7 @@ const INITIAL_UPGRADES = {
         description: '50% chance to make you feel better, 50% chance to make you feel worse, 50% chance to change you into a horse',
         level: 0,
         baseCost: 5000,
+        hpPerSecond: 0, // Will be dynamically set based on rolls
         costIncreaseFactor: 2.5,
     },
 };
@@ -155,12 +156,15 @@ function gameData() {
                 }
                 
                 if (roll <= 0.3) { // Actually 30% chance of bad outcome (secret!)
-                    // Reduces current HPS by 25% (less harsh than the original 50%)
-                    this.hpPerSecond = Math.max(0, this.hpPerSecond * 0.75);
+                    // Bad outcome: Set to a negative value to reduce HPS
+                    upgrade.hpPerSecond = -50; // Reduces HPS by 50 per level
                 } else { // Actually 70% chance of good outcome (secret!)
-                    // 2.5x multiplier for current HPS
-                    this.hpPerSecond = this.hpPerSecond * 2.5;
+                    // Good outcome: Set to a high positive value
+                    upgrade.hpPerSecond = 200; // Adds 200 HPS per level
                 }
+                
+                // Recalculate total HPS using normal system
+                this.updateDerivedStats();
             } else {
                 // Normal upgrade
                 upgrade.level += 1;
@@ -289,6 +293,11 @@ window.cheat = {
         const gameInstance = Alpine.$data(document.querySelector('[x-data]'));
         gameInstance.healthPoints = gameInstance.winCondition;
         console.log('🎉 You won!');
+    },
+    reset: () => {
+        const gameInstance = Alpine.$data(document.querySelector('[x-data]'));
+        gameInstance.resetGame();
+        console.log('🔄 Game reset!');
     },
     help: () => {
         console.log(`
