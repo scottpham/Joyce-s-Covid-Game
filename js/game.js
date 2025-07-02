@@ -81,6 +81,7 @@ function gameData() {
         gameTimer: null,
         winCondition: 1_000_000_000,
         isHorse: false,
+        isGlowing: false,
 
         // Computed properties
         get healthPercentage() {
@@ -138,6 +139,9 @@ function gameData() {
             
             this.healthPoints -= cost;
             
+            // Trigger glow animation
+            this.triggerGlow();
+            
             // Special handling for Ivermectin
             if (upgradeId === UPGRADE_IDS.IVERMECTIN) {
                 const roll = Math.random();
@@ -163,6 +167,13 @@ function gameData() {
             }
         },
         
+        triggerGlow() {
+            this.isGlowing = true;
+            setTimeout(() => {
+                this.isGlowing = false;
+            }, 600); // Match animation duration
+        },
+        
         startGame() {
             this.updateDerivedStats();
             
@@ -182,6 +193,7 @@ function gameData() {
             this.upgrades = structuredClone(INITIAL_UPGRADES);
             this.floatingNumbers = [];
             this.isHorse = false;
+            this.isGlowing = false;
             
             // Clear existing timer
             if (this.gameTimer) {

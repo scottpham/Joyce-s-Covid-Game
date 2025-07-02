@@ -7,7 +7,7 @@ A simple clicker game where you fight COVID by clicking to gain health points an
 This game requires no build tools or installation steps! Simply open the HTML file in your browser.
 
 1. **Download or clone this repository**
-2. **Open `game.html` in any modern web browser**
+2. **Open `index.html` in any modern web browser**
    - You can double-click the file to open it directly, or
    - Use a local web server (recommended for best performance and to avoid potential CORS issues)
 
@@ -26,7 +26,7 @@ npx serve .
 php -S localhost:8000
 ```
 
-Then visit `http://localhost:8000/game.html` in your browser.
+Then visit `http://localhost:8000/` in your browser.
 
 ## How to Play
 
@@ -40,7 +40,7 @@ This game uses a simple, modern JavaScript architecture that's easy to understan
 
 ### Files Overview
 
-- **`game.html`** - The main game file. Open this in your browser to play.
+- **`index.html`** - The main game file. Open this in your browser to play.
 - **`js/game.js`** - Contains all game logic using vanilla JavaScript and Alpine.js
 - **`README.md`** - This file with instructions and documentation
 
