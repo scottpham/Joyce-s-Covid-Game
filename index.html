@@ -71,52 +71,54 @@
                         <h2 class="font-pixel text-2xl md:text-4xl text-green-400" style="text-shadow: 2px 2px 0 #000" x-text="formatNumber(healthPoints)"></h2>
                         <p class="text-sm text-gray-400">Health Points</p>
                         <p class="text-lg text-green-300 mt-1" x-text="`${formatNumber(hpPerSecond)} HP/sec`"></p>
+                        
+                        <!-- Character Display -->
+                        <div class="relative flex items-center justify-center my-4">
+                            <svg viewBox="0 0 100 100" class="w-48 h-48 md:w-64 md:h-64 transition-colors duration-500"
+                                 :class="[characterColor, isGlowing ? 'animate-glow' : '']">
+                                <!-- Circle -->
+                                <circle cx="50" cy="50" r="45" fill="currentColor" stroke="#1f2937" stroke-width="4" />
+                                
+                                <!-- Eyes -->
+                                <g x-show="healthPercentage <= 35">
+                                    <path d="M35 40 Q40 35 45 40" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                                    <path d="M55 40 Q60 35 65 40" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                                </g>
+                                <g x-show="healthPercentage > 35 && healthPercentage <= 75">
+                                    <line x1="35" y1="40" x2="45" y2="40" stroke="black" stroke-width="5" stroke-linecap="round" />
+                                    <line x1="55" y1="40" x2="65" y2="40" stroke="black" stroke-width="5" stroke-linecap="round" />
+                                </g>
+                                <g x-show="healthPercentage > 75">
+                                    <circle cx="40" cy="40" r="4" fill="black" />
+                                    <circle cx="60" cy="40" r="4" fill="black" />
+                                </g>
+                                
+                                <!-- Mouth -->
+                                <g x-show="healthPercentage <= 35">
+                                    <path d="M38 65 Q50 55 62 65" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                                </g>
+                                <g x-show="healthPercentage > 35 && healthPercentage <= 75">
+                                    <line x1="38" y1="62" x2="62" y2="62" stroke="black" stroke-width="5" stroke-linecap="round" />
+                                </g>
+                                <g x-show="healthPercentage > 75">
+                                    <path d="M38 58 Q50 72 62 58" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
+                                </g>
+                            </svg>
+                            
+                            <!-- Floating Numbers -->
+                            <template x-for="number in floatingNumbers" :key="number.id">
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-pixel text-2xl md:text-3xl text-green-400 pointer-events-none animate-float-up"
+                                     style="text-shadow: 2px 2px 0px rgba(0,0,0,0.7);"
+                                     x-text="`+${number.value}`"></div>
+                            </template>
+                        </div>
                     </div>
                     
-                    <!-- Character Display -->
-                    <div class="relative w-full flex-grow flex items-center justify-center my-4">
-                        <svg viewBox="0 0 100 100" class="w-48 h-48 md:w-64 md:h-64 transition-colors duration-500"
-                             :class="[characterColor, isGlowing ? 'animate-glow' : '']">
-                            <circle cx="50" cy="50" r="45" fill="currentColor" stroke="#1f2937" stroke-width="4" />
-                        </svg>
-                        <svg viewBox="0 0 100 100" class="absolute top-0 left-0 w-48 h-48 md:w-64 md:h-64">
-                            <!-- Eyes -->
-                            <g x-show="healthPercentage <= 35">
-                                <path d="M30 45 Q35 40 40 45" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
-                                <path d="M60 45 Q65 40 70 45" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
-                            </g>
-                            <g x-show="healthPercentage > 35 && healthPercentage <= 75">
-                                <line x1="30" y1="45" x2="40" y2="45" stroke="black" stroke-width="5" stroke-linecap="round" />
-                                <line x1="60" y1="45" x2="70" y2="45" stroke="black" stroke-width="5" stroke-linecap="round" />
-                            </g>
-                            <g x-show="healthPercentage > 75">
-                                <circle cx="35" cy="45" r="5" fill="black" />
-                                <circle cx="65" cy="45" r="5" fill="black" />
-                            </g>
-                            
-                            <!-- Mouth -->
-                            <g x-show="healthPercentage <= 35">
-                                <path d="M35 70 Q50 60 65 70" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
-                            </g>
-                            <g x-show="healthPercentage > 35 && healthPercentage <= 75">
-                                <line x1="35" y1="70" x2="65" y2="70" stroke="black" stroke-width="5" stroke-linecap="round" />
-                            </g>
-                            <g x-show="healthPercentage > 75">
-                                <path d="M35 65 Q50 80 65 65" stroke="black" stroke-width="5" fill="none" stroke-linecap="round" />
-                            </g>
-                        </svg>
-                        
-                        <!-- Floating Numbers -->
-                        <template x-for="number in floatingNumbers" :key="number.id">
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-pixel text-2xl md:text-3xl text-green-400 pointer-events-none animate-float-up"
-                                 style="text-shadow: 2px 2px 0px rgba(0,0,0,0.7);"
-                                 x-text="`+${number.value}`"></div>
-                        </template>
+                    <div class="mt-4">
+                        <button @click="fightVirus()" class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 active:scale-100 transition-transform duration-150 ease-in-out font-pixel text-xl">
+                            Fight Virus!
+                        </button>
                     </div>
-
-                    <button @click="fightVirus()" class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 active:scale-100 transition-transform duration-150 ease-in-out font-pixel text-xl">
-                        Fight Virus!
-                    </button>
                 </div>
 
                 <!-- Right Column - Upgrades -->
@@ -128,6 +130,10 @@
                                 <div class="bg-gray-800/80 p-3 rounded-lg border border-gray-600 hover:border-gray-500 transition-colors">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center gap-3">
+                                            <!-- Default Icon for non-Ivermectin upgrades -->
+                                            <div x-show="upgrade.id !== 'ivermectin'" class="w-8 h-8 bg-blue-600 rounded border-2 border-blue-500 flex items-center justify-center">
+                                                <span class="text-white text-xs font-bold" x-text="upgrade.name.charAt(0)"></span>
+                                            </div>
                                             <!-- Joe Rogan Icon for Ivermectin (normal) -->
                                             <div x-show="upgrade.id === 'ivermectin' && !isHorse" class="w-8 h-8 bg-gray-700 rounded border-2 border-gray-600 flex items-center justify-center">
                                                 <svg viewBox="0 0 20 20" class="w-6 h-6">

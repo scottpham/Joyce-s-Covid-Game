@@ -1,5 +1,7 @@
 // Game constants and data
 const UPGRADE_IDS = {
+    SOY: 'soy',
+    LENTILS: 'lentils',
     LIQUIDS: 'liquids',
     NYQUIL: 'nyquil',
     SLEEP: 'sleep',
@@ -7,13 +9,31 @@ const UPGRADE_IDS = {
 };
 
 const INITIAL_UPGRADES = {
+    [UPGRADE_IDS.SOY]: {
+        id: UPGRADE_IDS.SOY,
+        name: 'Soy Milk',
+        description: "Doesn't actually help much, but it makes you feel better.",
+        level: 0,
+        baseCost: 15,
+        hpPerSecond: 5,
+        costIncreaseFactor: 1.11,
+    },
+    [UPGRADE_IDS.LENTILS]: {
+        id: UPGRADE_IDS.LENTILS,
+        name: 'Lentils',
+        description: "I dunno, you like this stuff. I guess it has fiber?",
+        level: 0,
+        baseCost: 200,
+        hpPerSecond: 50,
+        costIncreaseFactor: 1.11,
+    },
     [UPGRADE_IDS.LIQUIDS]: {
         id: UPGRADE_IDS.LIQUIDS,
         name: 'Liquids',
         description: 'Stay hydrated to feel better.',
         level: 0,
-        baseCost: 15,
-        hpPerSecond: 1,
+        baseCost: 1000,
+        hpPerSecond: 500,
         costIncreaseFactor: 1.10,
     },
     [UPGRADE_IDS.NYQUIL]: {
@@ -21,8 +41,8 @@ const INITIAL_UPGRADES = {
         name: 'NyQuil',
         description: 'The nighttime, sniffling, sneezing, coughing, aching, stuffy head, fever, so you can rest medicine.',
         level: 0,
-        baseCost: 100,
-        hpPerSecond: 20,
+        baseCost: 6000,
+        hpPerSecond: 2000,
         costIncreaseFactor: 1.10,
     },
     [UPGRADE_IDS.SLEEP]: {
@@ -30,8 +50,8 @@ const INITIAL_UPGRADES = {
         name: 'A Good Night\'s Sleep',
         description: 'The ultimate healer. Generates a lot of health.',
         level: 0,
-        baseCost: 1100,
-        hpPerSecond: 150,
+        baseCost: 20000,
+        hpPerSecond: 10000,
         costIncreaseFactor: 1.11,
     },
     [UPGRADE_IDS.IVERMECTIN]: {
@@ -39,7 +59,7 @@ const INITIAL_UPGRADES = {
         name: 'Ivermectin',
         description: '50% chance to make you feel better, 50% chance to make you feel worse, 50% chance to change you into a horse',
         level: 0,
-        baseCost: 5000,
+        baseCost: 75000,
         hpPerSecond: 0, // Will be dynamically set based on rolls
         costIncreaseFactor: 2.5,
     },
@@ -200,8 +220,23 @@ function gameData() {
                     this.healthPoints = gameState.healthPoints || 0;
                     this.hpPerSecond = gameState.hpPerSecond || 0;
                     this.hpPerClick = gameState.hpPerClick || 1;
-                    this.upgrades = gameState.upgrades || structuredClone(INITIAL_UPGRADES);
                     this.isHorse = gameState.isHorse || false;
+                    
+                    // Merge saved upgrades with new upgrades
+                    this.upgrades = structuredClone(INITIAL_UPGRADES);
+                    if (gameState.upgrades) {
+                        // Copy over saved upgrade levels and any dynamic properties
+                        Object.keys(gameState.upgrades).forEach(upgradeId => {
+                            if (this.upgrades[upgradeId]) {
+                                this.upgrades[upgradeId].level = gameState.upgrades[upgradeId].level || 0;
+                                // Copy over dynamic hpPerSecond for Ivermectin
+                                if (upgradeId === UPGRADE_IDS.IVERMECTIN && gameState.upgrades[upgradeId].hpPerSecond !== undefined) {
+                                    this.upgrades[upgradeId].hpPerSecond = gameState.upgrades[upgradeId].hpPerSecond;
+                                }
+                            }
+                        });
+                    }
+                    
                     console.log('💾 Game loaded from save');
                     return true;
                 } catch (error) {
