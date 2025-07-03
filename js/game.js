@@ -57,10 +57,10 @@ const INITIAL_UPGRADES = {
     [UPGRADE_IDS.IVERMECTIN]: {
         id: UPGRADE_IDS.IVERMECTIN,
         name: 'Ivermectin',
-        description: '50% chance to make you feel better, 50% chance to make you feel worse, 50% chance to change you into a horse',
+        description: '50% chance to increase HP/sec by 50%, 50% chance to decrease HP/sec by 25%, 10% chance to turn you into a horse',
         level: 0,
         baseCost: 75000,
-        hpPerSecond: 0, // Will be dynamically set based on rolls
+        hpPerSecond: 'Variable', // Will show as "Variable HP/sec" in UI
         costIncreaseFactor: 2.5,
     },
 };
@@ -104,6 +104,7 @@ function gameData() {
         winCondition: 500_000_000,
         isHorse: false,
         isGlowing: false,
+        ivermectinMultiplier: 1, // Tracks the cumulative effect of Ivermectin purchases
 
         // Computed properties
         get healthPercentage() {
@@ -132,7 +133,14 @@ function gameData() {
         },
         
         updateDerivedStats() {
-            this.hpPerSecond = calculateHpPerSecond(this.upgrades);
+            // Calculate base HP/sec from all upgrades except Ivermectin
+            const baseHpPerSecond = Object.values(this.upgrades).reduce((total, upgrade) => {
+                if (upgrade.id === UPGRADE_IDS.IVERMECTIN) return total;
+                return total + (upgrade.hpPerSecond || 0) * upgrade.level;
+            }, 0);
+            
+            // Apply Ivermectin multiplier to the base
+            this.hpPerSecond = baseHpPerSecond * this.ivermectinMultiplier;
             this.hpPerClick = calculateHpPerClick(this.upgrades);
         },
         
@@ -156,6 +164,7 @@ function gameData() {
         buyUpgrade(upgradeId) {
             const upgrade = this.upgrades[upgradeId];
             const cost = this.getUpgradeCost(upgrade);
+            const currentHPS = this.hpPerSecond;
             
             if (this.healthPoints < cost) return;
             
@@ -175,20 +184,50 @@ function gameData() {
                     this.isHorse = true;
                 }
                 
-                if (roll <= 0.3) { // Actually 30% chance of bad outcome (secret!)
-                    // Bad outcome: Set to a negative value to reduce HPS
-                    upgrade.hpPerSecond = -50; // Reduces HPS by 50 per level
-                } else { // Actually 70% chance of good outcome (secret!)
-                    // Good outcome: Set to a high positive value
-                    upgrade.hpPerSecond = 200; // Adds 200 HPS per level
+                let effectText;
+                if (roll <= 0.5) { // 50% chance of bad outcome
+                    // Bad outcome: reduce multiplier by 25%
+                    this.ivermectinMultiplier *= 0.75;
+                    effectText = "-25% HP/sec";
+                } else { // 50% chance of good outcome
+                    // Good outcome: increase multiplier by 50%
+                    this.ivermectinMultiplier *= 1.5;
+                    effectText = "+50% HP/sec";
                 }
+
+                // Add floating number animation showing the actual effect
+                const floatingNumber = {
+                    id: Date.now() + Math.random(),
+                    value: effectText
+                };
+                this.floatingNumbers.push(floatingNumber);
                 
-                // Recalculate total HPS using normal system
+                // Remove floating number after animation
+                setTimeout(() => {
+                    this.floatingNumbers = this.floatingNumbers.filter(n => n.id !== floatingNumber.id);
+                }, 1500);
+
+                console.log(`Ivermectin upgrade rolled: ${roll.toFixed(2)}, horse roll: ${horseRoll.toFixed(2)}`);
+                console.log(`Ivermectin multiplier changed to: ${this.ivermectinMultiplier}`);
+                
+                // Recalculate HP/sec with new multiplier
                 this.updateDerivedStats();
             } else {
                 // Normal upgrade
                 upgrade.level += 1;
                 this.updateDerivedStats();
+                
+                // Add floating number animation showing upgrade value
+                const floatingNumber = {
+                    id: Date.now() + Math.random(),
+                    value: `+${formatNumber(upgrade.hpPerSecond)}/sec`
+                };
+                this.floatingNumbers.push(floatingNumber);
+                
+                // Remove floating number after animation
+                setTimeout(() => {
+                    this.floatingNumbers = this.floatingNumbers.filter(n => n.id !== floatingNumber.id);
+                }, 1500);
             }
         },
         
@@ -206,6 +245,7 @@ function gameData() {
                 hpPerClick: this.hpPerClick,
                 upgrades: this.upgrades,
                 isHorse: this.isHorse,
+                ivermectinMultiplier: this.ivermectinMultiplier,
                 timestamp: Date.now()
             };
             localStorage.setItem('joyces-covid-game-save', JSON.stringify(gameState));
@@ -221,6 +261,7 @@ function gameData() {
                     this.hpPerSecond = gameState.hpPerSecond || 0;
                     this.hpPerClick = gameState.hpPerClick || 1;
                     this.isHorse = gameState.isHorse || false;
+                    this.ivermectinMultiplier = gameState.ivermectinMultiplier || 1;
                     
                     // Merge saved upgrades with new upgrades
                     this.upgrades = structuredClone(INITIAL_UPGRADES);
@@ -281,6 +322,7 @@ function gameData() {
             this.floatingNumbers = [];
             this.isHorse = false;
             this.isGlowing = false;
+            this.ivermectinMultiplier = 1;
             
             // Clear existing timers
             if (this.gameTimer) {

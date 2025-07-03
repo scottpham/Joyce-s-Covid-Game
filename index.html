@@ -55,7 +55,8 @@
         <div x-show="!isWon">
             <!-- Header -->
             <header class="w-full max-w-6xl text-center mb-4">
-                <h1 class="font-pixel text-3xl md:text-5xl text-red-500" style="text-shadow: 2px 2px 0px #000">JOYCE'S COVID GAME</h1>
+                <h1 class="font-pixel text-3xl md:text-5xl text-red-500" style="text-shadow: 2px 2px 0px #000">JOYCE'S STREP GAME</h1>
+                <p class="text-sm text-gray-300 mt-2">I guess you have strep now? Click "Fight infection!" and buy upgrades to reach 100% cured</p>
                 <div class="mt-4 w-full bg-gray-700 rounded-full h-8 border-2 border-gray-600 shadow-inner">
                     <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500 ease-out"
                          :style="`width: ${healthPercentage}%`"></div>
@@ -116,7 +117,7 @@
                     
                     <div class="mt-4">
                         <button @click="fightVirus()" class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform hover:scale-105 active:scale-100 transition-transform duration-150 ease-in-out font-pixel text-xl">
-                            Fight Virus!
+                            Fight Infection!
                         </button>
                     </div>
                 </div>
@@ -190,8 +191,11 @@
                                             <div x-show="upgrade.id === 'ivermectin' && isHorse" class="w-8 h-8 bg-gray-200 rounded border-2 border-gray-700 flex items-center justify-center p-1">
                                                 <img src="horse.png" alt="Horse" class="w-full h-full object-contain" style="image-rendering: pixelated;">
                                             </div>
-                                            <div>
-                                                <h3 class="font-pixel text-sm text-yellow-300" x-text="upgrade.name"></h3>
+                                            <div class="flex-1">
+                                                <h3 class="font-pixel text-sm text-yellow-300">
+                                                    <span x-text="upgrade.name"></span>
+                                                    <span class="text-xs text-cyan-300 ml-4 font-normal" x-text="upgrade.hpPerSecond === 'Variable' ? 'Variable HP/sec' : `+${formatNumber(upgrade.hpPerSecond)} HP/sec`"></span>
+                                                </h3>
                                                 <p class="text-xs text-gray-300 leading-relaxed" x-text="upgrade.description"></p>
                                             </div>
                                         </div>
